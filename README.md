@@ -1,4 +1,4 @@
-
+git push -u origin main
 instalar os pacotes 
 pip install -r requirements.txt
 
