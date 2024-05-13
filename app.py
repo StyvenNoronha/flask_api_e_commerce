@@ -16,6 +16,7 @@ class Product(db.Model):
 
 
 #rotas
+#cadastro de produtos
 @app.route('/api/products/add', methods=["POST"])
 def add_product():
     data = request.json
@@ -27,7 +28,16 @@ def add_product():
     else:
         return jsonify({"message":"produto invalido"}), 400
 
-    
+#deletar produtos
+@app.route('/api/products/delete/<int:product_id>', methods=["DELETE"])
+def delete_product(product_id):
+    product = Product.query.get(product_id)
+    if product:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({"message":"produto deletado com sucesso"}), 200   
+    else:
+        return jsonify({"message":"produto não encontrado"}), 400    
     
 @app.route('/')
 def hello_world():
