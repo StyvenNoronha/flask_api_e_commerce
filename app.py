@@ -35,10 +35,23 @@ def delete_product(product_id):
     if product:
         db.session.delete(product)
         db.session.commit()
-        return jsonify({"message":"produto deletado com sucesso"}), 200   
+        return jsonify({"message":"produto deletado com sucesso","NOME":product.name,}), 200   
     else:
-        return jsonify({"message":"produto não encontrado"}), 400    
+        return jsonify({"message":"produto não encontrado"}), 400 
     
+    
+       
+#routa de achar um produto
+@app.route('/api/products/<int:product_id>', methods=["GET"])
+def get_product_details(product_id):
+    product = Product.query.get(product_id)  
+    if product:
+        return jsonify({"ID":product.id,"NOME":product.name,"PRECO":product.price,"DESCRICAO":product.description}), 200
+    else:
+        return jsonify({"message": "produto não encontrado"}),400
+    
+    
+          
 @app.route('/')
 def hello_world():
     return 'hello world'
