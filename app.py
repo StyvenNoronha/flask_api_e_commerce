@@ -53,7 +53,7 @@ def get_product_details(product_id):
     
 #rota de atualização 
 @app.route('/api/products/update/<int:product_id>', methods=["PUT"])
-def ypdate_product(product_id):
+def update_product(product_id):
     product = Product.query.get(product_id)
     if not product:
         return jsonify({"message": "produto não encontrado"}),400
@@ -68,7 +68,17 @@ def ypdate_product(product_id):
         product.description = data['description']    
     db.session.commit()
     return jsonify({"messager":"Produto atualizado com sucesso"}), 200
-    
+
+
+#lista dos produtos
+@app.route('/api/products', methods=["GET"])
+def get_product():
+    products = Product.query.all()
+    product_list = []
+    for p in products:
+        product_data = {"ID":p.id,"NOME":p.name,"PRECO":p.price,"DESCRICAO":p.description}
+        product_list.append(product_data)
+    return jsonify(product_list)
              
 @app.route('/')
 def hello_world():
