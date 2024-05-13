@@ -1,13 +1,23 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_cors import CORS
+from flask_login import UserMixin
 app = Flask(__name__)
 #ligação com o banco de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db'
 db = SQLAlchemy(app)
+CORS(app)
 #///////
 #banco de dados
-#classe de produtos
+#tabela de usuario
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    password = db.Column(db.String(80), nullable=True)  
+    
+    
+    
+#tabela de produtos
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -27,6 +37,18 @@ def add_product():
         return jsonify({"message":"produto cadastrado com sucesso"}), 200   
     else:
         return jsonify({"message":"produto invalido"}), 400
+    
+#cadastro de usuarios
+@app.route('/api/user/add', methods=["POST"])
+def add_user():
+    data = request.json
+    if 'username' in data and 'password' in data:
+        user = User(username=data.get("username","erro"), password=data.get("password","erro"))
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({"message":"Usuario cadastrado com sucesso"}), 200   
+    else:
+        return jsonify({"message":"Erro ao adicionar um usuario"}), 400    
 
 #deletar produtos
 @app.route('/api/products/delete/<int:product_id>', methods=["DELETE"])
