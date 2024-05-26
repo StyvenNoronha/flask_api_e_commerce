@@ -169,7 +169,43 @@ def remove_from_cart(product_id):
        return jsonify({'message': 'Item removido do carrinho'})
     return jsonify({'message': 'Falha ao remover item no carrinho'}), 400
 
+@app.route('/api/cart', methods=['GET'])
+@login_required
+def view_cart():
+    user = User.query.get(int(current_user.id))
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    cart_items = user.cart
 
+    if not cart_items:
+        return jsonify({"message": "Cart is empty"}), 200
+    
+    # Collect all product_ids from cart_items
+    product_ids = [cart_item.product_id for cart_item in cart_items]
+    
+    # Fetch all products at once
+    products = Product.query.filter(Product.id.in_(product_ids)).all()
+    product_dict = {product.id: product for product in products}
+    
+    cart_content = []
+    for cart_item in cart_items:
+        product = product_dict.get(cart_item.product_id)
+        
+        if product is None:
+            continue  # Skip this cart item if the product does not exist
+        
+        cart_content.append({
+            "id": cart_item.id,
+            "user_id": cart_item.user_id,
+            "product_id": cart_item.product_id,
+            "product_name": product.name,
+            "product_preco": product.price,
+            "product_descricao": product.description,
+        })
+    
+    return jsonify(cart_content)
 
 
 if __name__ == "__main__":
