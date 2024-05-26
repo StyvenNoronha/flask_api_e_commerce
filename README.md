@@ -14,4 +14,8 @@ para criar o banco de dados digita no terminal
  db.session.commit()    #Conexão com o banco
  exit()                 #sair do shell
 
- 24:13
+ user= User(username="admin", password="123") 
+ db.session.add(user)
+ db.session.commit()
+
+ 

@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "senhasuperdificil"
 #ligação com o banco de dados
@@ -12,18 +12,14 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 CORS(app)
 
-
-
-#///////
 #banco de dados
 #tabela de usuario
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=True)  
-    
-    
-    
+    password = db.Column(db.String(80), nullable=True) 
+    cart = db.relationship('CartItem', backref='user', lazy=True) 
+   
 #tabela de produtos
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +27,11 @@ class Product(db.Model):
     price = db.Column(db.Float,nullable=False)
     description = db.Column(db.Text, nullable=True)
 
-
+#carrinho de compras
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
 #rotas
 #autenticação
 @login_manager.user_loader
@@ -142,6 +142,24 @@ def get_product():
 def hello_world():
     return 'hello world'
 
+
+#Checkout
+@app.route('/api/cart/add/<int:product_id>', methods=['POST'])
+@login_required
+def add_to_card(product_id):
+   #Usuario 
+   user = User.query.get(int(current_user.id))
+   #Produto
+   product = Product.query.get(product_id)
+   
+   if user and product:
+       cart_item = CartItem(user_id=user.id, product_id= product.id)
+       db.session.add(cart_item)
+       db.session.commit()
+       return jsonify({'message': 'Item adicionado com sucesso'})
+   return jsonify({'message': 'Falha ao adionar item no carrinho'}), 400
+
 if __name__ == "__main__":
     app.run(debug=True)    
 ##########################################################################################
+
